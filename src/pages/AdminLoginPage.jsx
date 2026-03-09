@@ -48,6 +48,11 @@ export default function AdminLoginPage() {
         try {
             setLoading(true)
 
+            // Check configuration
+            if (!supabase.supabaseUrl || supabase.supabaseUrl === 'undefined') {
+                throw new Error('Supabase configuration is missing. Please check your environment variables.')
+            }
+
             // Supabase auth check
             const { data: adminData, error } = await supabase
                 .from('administrators')
@@ -55,11 +60,17 @@ export default function AdminLoginPage() {
                 .eq('id', id)
                 .single()
 
-            if (error || !adminData) {
+            if (error) {
+                console.error("Supabase error:", error)
+                if (error.code === 'PGRST116') throw new Error('Invalid admin ID or credentials')
+                throw new Error(`Connection error: ${error.message}`)
+            }
+
+            if (!adminData) {
                 throw new Error('Invalid admin ID or credentials')
             }
 
-            if (adminData.full_name.toLowerCase() !== name.toLowerCase()) {
+            if (adminData.full_name.trim().toLowerCase() !== name.trim().toLowerCase()) {
                 throw new Error('Name does not match Admin ID')
             }
 

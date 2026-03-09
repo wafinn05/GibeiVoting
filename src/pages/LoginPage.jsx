@@ -49,17 +49,27 @@ export default function LoginPage() {
         try {
             setLoading(true)
 
+            if (!supabase.supabaseUrl || supabase.supabaseUrl === 'undefined') {
+                throw new Error('Supabase configuration is missing. Please check your environment variables.')
+            }
+
             const { data: memberData, error } = await supabase
                 .from('voters')
                 .select('*')
                 .eq('id', id)
                 .single()
 
-            if (error || !memberData) {
+            if (error) {
+                console.error("Supabase error:", error)
+                if (error.code === 'PGRST116') throw new Error('Member ID not found')
+                throw new Error(`Connection error: ${error.message}`)
+            }
+
+            if (!memberData) {
                 throw new Error('Member ID not found')
             }
 
-            if (memberData.full_name.toLowerCase() !== name.toLowerCase()) {
+            if (memberData.full_name.trim().toLowerCase() !== name.trim().toLowerCase()) {
                 throw new Error('Name does not match the Member ID')
             }
 
