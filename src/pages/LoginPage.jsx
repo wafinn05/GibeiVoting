@@ -1,7 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { doc, getDoc } from 'firebase/firestore'
-import { db } from '../services/firebase'
+import { supabase } from '../services/supabase'
 import { useAuth } from '../context/AuthContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 import styles from './LoginPage.module.css'
@@ -19,10 +18,11 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false)
 
     // Redirect if already logged in
-    if (isMemberLoggedIn) {
-        navigate('/vote', { replace: true })
-        return null
-    }
+    useEffect(() => {
+        if (isMemberLoggedIn) {
+            navigate('/vote', { replace: true })
+        }
+    }, [isMemberLoggedIn, navigate])
 
     const resetErrors = () => {
         setNameError('')
@@ -49,20 +49,21 @@ export default function LoginPage() {
         try {
             setLoading(true)
 
-            const memberRef = doc(db, 'users', id)
-            const memberSnap = await getDoc(memberRef)
+            const { data: memberData, error } = await supabase
+                .from('voters')
+                .select('*')
+                .eq('id', id)
+                .single()
 
-            if (!memberSnap.exists()) {
+            if (error || !memberData) {
                 throw new Error('Member ID not found')
             }
 
-            const memberData = memberSnap.data()
-
-            if (memberData.name.toLowerCase() !== name.toLowerCase()) {
+            if (memberData.full_name.toLowerCase() !== name.toLowerCase()) {
                 throw new Error('Name does not match the Member ID')
             }
 
-            loginMember(id, memberData.name)
+            loginMember(id, memberData.full_name)
             navigate('/vote')
         } catch (err) {
             console.error('Login error:', err)

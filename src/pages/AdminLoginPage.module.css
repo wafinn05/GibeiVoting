@@ -154,6 +154,18 @@
 
 @media (max-width: 768px) {
     .container {
-        padding: 24px 20px;
+        padding: 25px 20px;
+    }
+
+    .logo {
+        width: 60px;
+    }
+
+    .title {
+        font-size: 1.4rem;
+    }
+
+    .subtitle {
+        font-size: 0.9rem;
     }
 }

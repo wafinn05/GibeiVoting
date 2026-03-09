@@ -176,17 +176,42 @@
         height: auto;
         min-height: 100vh;
         overflow-y: auto;
-        padding: 20px 10px;
+        padding: 20px 15px;
+        display: block;
+        /* Use block for natural scrolling */
     }
 
     .container {
         flex-direction: column;
         max-height: none;
         width: 100%;
+        margin: 0 auto;
     }
 
     .leftPanel,
     .rightPanel {
-        padding: 40px 30px;
+        padding: 40px 25px;
+        flex: none;
+    }
+
+    .logo {
+        width: 90px;
+    }
+
+    .title {
+        font-size: 1.8rem;
+    }
+
+    .votingTitle {
+        font-size: 1.5rem;
+    }
+
+    .subtitle {
+        font-size: 1.1rem;
+    }
+
+    .actionBtn {
+        padding: 12px 18px;
+        font-size: 0.95rem;
     }
 }

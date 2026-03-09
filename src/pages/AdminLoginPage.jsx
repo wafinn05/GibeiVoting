@@ -1,18 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { doc, getDoc } from 'firebase/firestore'
-import { db } from '../services/firebase'
+import { supabase } from '../services/supabase'
 import { useAuth } from '../context/AuthContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 import styles from './AdminLoginPage.module.css'
 
 const LOGO_URL = 'https://gibeitelkomuniversity.my.id/src/assets/logo.png'
-
-// Temporary admin credentials (same as original)
-const TEMP_ADMINS = {
-    'ADM001': { name: 'Admin GIBEI', role: 'administrator' },
-    'admin': { name: 'Administrator', role: 'administrator' }
-}
 
 export default function AdminLoginPage() {
     const navigate = useNavigate()
@@ -25,10 +18,11 @@ export default function AdminLoginPage() {
     const [loading, setLoading] = useState(false)
 
     // Redirect if already logged in
-    if (isAdminLoggedIn) {
-        navigate('/admin/dashboard', { replace: true })
-        return null
-    }
+    useEffect(() => {
+        if (isAdminLoggedIn) {
+            navigate('/admin/dashboard', { replace: true })
+        }
+    }, [isAdminLoggedIn, navigate])
 
     const resetErrors = () => {
         setNameError('')
@@ -54,32 +48,23 @@ export default function AdminLoginPage() {
         try {
             setLoading(true)
 
-            // Try Firebase first
-            try {
-                const adminRef = doc(db, 'admins', id)
-                const adminSnap = await getDoc(adminRef)
+            // Supabase auth check
+            const { data: adminData, error } = await supabase
+                .from('administrators')
+                .select('*')
+                .eq('id', id)
+                .single()
 
-                if (adminSnap.exists()) {
-                    const data = adminSnap.data()
-                    if (data.name.toLowerCase() !== name.toLowerCase()) {
-                        throw new Error('Name does not match Admin ID')
-                    }
-                    loginAdmin(id, data.name)
-                    navigate('/admin/dashboard')
-                    return
-                }
-            } catch (firebaseError) {
-                console.log('Firebase admin check failed, trying fallback...', firebaseError)
+            if (error || !adminData) {
+                throw new Error('Invalid admin ID or credentials')
             }
 
-            // Fallback: temporary credentials
-            if (TEMP_ADMINS[id] && TEMP_ADMINS[id].name.toLowerCase() === name.toLowerCase()) {
-                loginAdmin(id, TEMP_ADMINS[id].name)
-                navigate('/admin/dashboard')
-                return
+            if (adminData.full_name.toLowerCase() !== name.toLowerCase()) {
+                throw new Error('Name does not match Admin ID')
             }
 
-            throw new Error('Invalid admin credentials')
+            loginAdmin(id, adminData.full_name)
+            navigate('/admin/dashboard')
         } catch (err) {
             console.error('Login error:', err)
             if (err.message.includes('match')) {

@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { doc, getDoc, setDoc } from 'firebase/firestore'
-import { db } from '../services/firebase'
+import { supabase } from '../services/supabase'
 import { useAuth } from '../context/AuthContext'
-
 
 import LoadingSpinner from '../components/LoadingSpinner'
 import styles from './VotingPage.module.css'
+
+const LOGO_URL = 'https://gibeitelkomuniversity.my.id/src/assets/logo.png'
 
 export default function VotingPage() {
     const navigate = useNavigate()
@@ -28,11 +28,17 @@ export default function VotingPage() {
     }, [isMemberLoggedIn])
 
     async function checkSessionAndLoad() {
-        try {
-            const userRef = doc(db, 'users', memberAuth.id)
-            const userSnap = await getDoc(userRef)
+        if (!memberAuth) return
 
-            if (userSnap.exists() && userSnap.data().hasVoted === true) {
+        try {
+            // Check if user has already voted in Supabase 'voters' table
+            const { data: userData, error } = await supabase
+                .from('voters')
+                .select('has_voted')
+                .eq('id', memberAuth.id)
+                .single()
+
+            if (userData && userData.has_voted === true) {
                 setHasVoted(true)
                 setLoading(false)
                 return
@@ -47,9 +53,12 @@ export default function VotingPage() {
 
     async function loadCandidates() {
         try {
-            const paslonDoc = await getDoc(doc(db, 'VotingGIBEI', 'Paslon'))
+            const { data: paslonData, error } = await supabase
+                .from('candidates')
+                .select('*')
+                .order('candidate_number', { ascending: true })
 
-            if (!paslonDoc.exists()) {
+            if (error || !paslonData || paslonData.length === 0) {
                 setCandidates([
                     { key: 'paslon1', name: 'Paslon 1', number: '01' },
                     { key: 'paslon2', name: 'Paslon 2', number: '02' }
@@ -57,16 +66,11 @@ export default function VotingPage() {
                 return
             }
 
-            const paslonData = paslonDoc.data()
-            const loadedCandidates = Object.keys(paslonData).map((key, index) => {
-                const paslon = paslonData[key]
-                return {
-                    key: `paslon${index + 1}`,
-                    firestoreKey: key,
-                    name: typeof paslon === 'string' ? paslon : paslon.name,
-                    number: typeof paslon === 'string' ? `0${index + 1}` : (paslon.number || `0${index + 1}`)
-                }
-            })
+            const loadedCandidates = paslonData.map((paslon, index) => ({
+                key: paslon.id,
+                name: paslon.candidate_name,
+                number: paslon.candidate_number
+            }))
 
             setCandidates(loadedCandidates)
         } catch (error) {
@@ -109,10 +113,13 @@ export default function VotingPage() {
         setSubmitting(true)
 
         try {
-            const userRef = doc(db, 'users', memberAuth.id)
-            const userSnap = await getDoc(userRef)
+            const { data: userData } = await supabase
+                .from('voters')
+                .select('has_voted')
+                .eq('id', memberAuth.id)
+                .single()
 
-            if (userSnap.exists() && userSnap.data().hasVoted === true) {
+            if (userData && userData.has_voted === true) {
                 alert('❌ You have already voted!')
                 setHasVoted(true)
                 setSubmitting(false)
@@ -127,16 +134,23 @@ export default function VotingPage() {
                 }
             })
 
-            const voteData = {
-                memberId: memberAuth.id,
-                memberName: memberAuth.name,
-                ratings: ratingsData,
-                votedAt: new Date(),
-                timestamp: new Date().toISOString()
-            }
+            const { error: voteError } = await supabase
+                .from('votes')
+                .insert({
+                    voter_id: memberAuth.id,
+                    voter_name: memberAuth.name,
+                    ratings: ratingsData,
+                    created_at: new Date().toISOString()
+                })
 
-            await setDoc(doc(db, 'votes', memberAuth.id), voteData)
-            await setDoc(userRef, { hasVoted: true, votedAt: new Date().toISOString() }, { merge: true })
+            if (voteError) throw voteError
+
+            const { error: updateError } = await supabase
+                .from('voters')
+                .update({ has_voted: true, voted_at: new Date().toISOString() })
+                .eq('id', memberAuth.id)
+
+            if (updateError) throw updateError
 
             setHasVoted(true)
             setSubmitting(false)
@@ -152,11 +166,35 @@ export default function VotingPage() {
         navigate('/')
     }
 
+    // Modern Header Component (Inline)
+    const RenderHeader = ({ userInfo }) => (
+        <div className={styles.topBar}>
+            <div className={styles.logoInfo}>
+                <img src={LOGO_URL} alt="GIBEI" className={styles.headerLogo} style={{ height: '45px' }} />
+                <div className={styles.pageInfo}>
+                    <h1 className={styles.pageTitle}>GIBEI President & VP Election</h1>
+                    <p className={styles.pageSubtitle}>Election Data Analysis</p>
+                </div>
+            </div>
+
+            {userInfo && (
+                <div className={styles.topActions}>
+                    <div className={styles.userInfoBadge}>
+                        <i className="fas fa-user-circle"></i> {userInfo}
+                    </div>
+                    <button onClick={handleLogout} className={styles.btnLogoutMini}>
+                        <i className="fas fa-sign-out-alt"></i> <span className={styles.btnText}>Logout</span>
+                    </button>
+                </div>
+            )}
+        </div>
+    )
+
     if (loading) {
         return (
             <div className={styles.votingBody}>
                 <div className={styles.container}>
-                    <Header title="GIBEI President & VP Election" subtitle="Cast your vote using the rating system" />
+                    <RenderHeader />
                     <LoadingSpinner text="Loading voting data..." large />
                 </div>
             </div>
@@ -166,13 +204,7 @@ export default function VotingPage() {
     return (
         <div className={styles.votingBody}>
             <div className={styles.container}>
-                <Header
-                    title="GIBEI President & VP Election"
-                    subtitle="Cast your vote using the rating system"
-                    userInfo={memberAuth ? `${memberAuth.name} (ID: ${memberAuth.id})` : ''}
-                    onLogout={handleLogout}
-                    logoSize={45}
-                />
+                <RenderHeader userInfo={memberAuth ? `${memberAuth.name} (ID: ${memberAuth.id})` : ''} />
 
                 {/* Slim Instruction Banner */}
                 <div className={styles.instructionBanner}>

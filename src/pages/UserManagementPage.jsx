@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { collection, getDocs, doc, deleteDoc, setDoc, updateDoc, writeBatch } from 'firebase/firestore'
-import { db } from '../services/firebase'
+import { supabase } from '../services/supabase'
 import { useAuth } from '../context/AuthContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 import styles from './UserManagementPage.module.css'
@@ -10,18 +9,19 @@ export default function UserManagementPage() {
     const navigate = useNavigate()
     const { isAdminLoggedIn } = useAuth()
 
-    const [activeTab, setActiveTab] = useState('voters') // 'voters' | 'admins'
+    const [activeTab, setActiveTab] = useState('voters') // 'voters' | 'admins' | 'candidates'
     const [loading, setLoading] = useState(true)
     const [actionLoading, setActionLoading] = useState(false)
     const [errorMsg, setErrorMsg] = useState('')
 
     const [users, setUsers] = useState([])
     const [admins, setAdmins] = useState([])
+    const [candidates, setCandidates] = useState([])
 
     // Form Modal State
     const [isModalOpen, setIsModalOpen] = useState(false)
-    const [modalMode, setModalMode] = useState('add') // 'add' | 'edit' | 'delete'
-    const [formData, setFormData] = useState({ id: '', name: '', role: '' })
+    const [modalMode, setModalMode] = useState('add') // 'add' | 'edit' | 'delete' | 'deleteAll'
+    const [formData, setFormData] = useState({ id: '', name: '', role: '', candidate_number: '' })
 
     useEffect(() => {
         if (!isAdminLoggedIn) {
@@ -36,21 +36,32 @@ export default function UserManagementPage() {
             setLoading(true)
             setErrorMsg('')
 
-            // Fetch voters (users)
-            const usersSnap = await getDocs(collection(db, 'users'))
-            const usersList = []
-            usersSnap.forEach(snap => {
-                usersList.push({ id: snap.id, ...snap.data() })
-            })
-            setUsers(usersList)
+            // Fetch voters
+            const { data: votersList, error: votersError } = await supabase
+                .from('voters')
+                .select('*')
+                .order('id', { ascending: true })
+
+            if (votersError) throw votersError
+            setUsers(votersList.map(v => ({ id: v.id, name: v.full_name, hasVoted: v.has_voted })))
 
             // Fetch admins
-            const adminsSnap = await getDocs(collection(db, 'admins'))
-            const adminsList = []
-            adminsSnap.forEach(snap => {
-                adminsList.push({ id: snap.id, ...snap.data() })
-            })
-            setAdmins(adminsList)
+            const { data: adminsList, error: adminsError } = await supabase
+                .from('administrators')
+                .select('*')
+                .order('id', { ascending: true })
+
+            if (adminsError) throw adminsError
+            setAdmins(adminsList.map(a => ({ id: a.id, name: a.full_name })))
+
+            // Fetch candidates
+            const { data: candList, error: candError } = await supabase
+                .from('candidates')
+                .select('*')
+                .order('candidate_number', { ascending: true })
+
+            if (candError) throw candError
+            setCandidates(candList.map(c => ({ id: c.id, name: c.candidate_name, number: c.candidate_number })))
 
         } catch (err) {
             console.error("Error fetching data:", err)
@@ -61,14 +72,19 @@ export default function UserManagementPage() {
     }
 
     const handleOpenAddModal = () => {
-        setFormData({ id: '', name: '', role: activeTab === 'admins' ? 'administrator' : '' })
+        setFormData({ id: '', name: '', role: activeTab === 'admins' ? 'administrator' : '', candidate_number: '' })
         setModalMode('add')
         setErrorMsg('')
         setIsModalOpen(true)
     }
 
     const handleOpenEditModal = (item) => {
-        setFormData({ id: item.id, name: item.name, role: item.role || '' })
+        setFormData({
+            id: item.id,
+            name: item.name,
+            role: item.role || '',
+            candidate_number: item.number || ''
+        })
         setModalMode('edit')
         setErrorMsg('')
         setIsModalOpen(true)
@@ -93,29 +109,49 @@ export default function UserManagementPage() {
 
     const handleSubmitForm = async (e) => {
         e.preventDefault()
-        const { id, name, role } = formData
+        const { id, name, candidate_number } = formData
 
-        if (!id.trim() || !name.trim()) {
+        if (activeTab !== 'candidates' && (!id.trim() || !name.trim())) {
             setErrorMsg('ID and Name cannot be empty.')
+            return
+        }
+
+        if (activeTab === 'candidates' && (!name.trim() || !candidate_number)) {
+            setErrorMsg('Candidate Name and Number cannot be empty.')
             return
         }
 
         try {
             setActionLoading(true)
             setErrorMsg('')
-            const collectionName = activeTab === 'voters' ? 'users' : 'admins'
-            const docRef = doc(db, collectionName, id.trim())
 
-            const payload = { name: name.trim() }
-            if (activeTab === 'admins') {
-                payload.role = 'administrator'
-            }
+            let tableName = ''
+            let payload = {}
 
-            if (modalMode === 'add') {
-                await setDoc(docRef, payload)
+            if (activeTab === 'voters') {
+                tableName = 'voters'
+                payload = { id: id.trim(), full_name: name.trim() }
+            } else if (activeTab === 'admins') {
+                tableName = 'administrators'
+                payload = { id: id.trim(), full_name: name.trim() }
             } else {
-                await updateDoc(docRef, payload)
+                tableName = 'candidates'
+                payload = {
+                    candidate_name: name.trim(),
+                    candidate_number: candidate_number.trim()
+                }
+                if (modalMode === 'edit') {
+                    payload.id = id
+                } else {
+                    payload.id = `paslon${candidate_number.trim()}`
+                }
             }
+
+            const { error } = await supabase
+                .from(tableName)
+                .upsert(payload)
+
+            if (error) throw error
 
             await fetchData()
             setIsModalOpen(false)
@@ -131,15 +167,16 @@ export default function UserManagementPage() {
         try {
             setActionLoading(true)
             setErrorMsg('')
-            const collectionName = activeTab === 'voters' ? 'users' : 'admins'
+            const tableName = activeTab === 'voters' ? 'voters' : activeTab === 'admins' ? 'administrators' : 'candidates'
             const documentId = String(formData.id).trim()
 
-            console.log(`Attempting to delete doc: "${documentId}" from collection: ${collectionName}`)
+            const { error } = await supabase
+                .from(tableName)
+                .delete()
+                .eq('id', documentId)
 
-            const docRef = doc(db, collectionName, documentId)
-            await deleteDoc(docRef)
+            if (error) throw error
 
-            console.log(`Successfully executed delete on doc: "${documentId}"`)
             await fetchData()
             setIsModalOpen(false)
         } catch (err) {
@@ -154,22 +191,16 @@ export default function UserManagementPage() {
         try {
             setActionLoading(true)
             setErrorMsg('')
-            const collectionName = activeTab === 'voters' ? 'users' : 'admins'
-            const snapshot = await getDocs(collection(db, collectionName))
+            const tableName = activeTab === 'voters' ? 'voters' : activeTab === 'admins' ? 'administrators' : 'candidates'
 
-            if (snapshot.empty) {
-                setErrorMsg('No data to delete.')
-                setIsModalOpen(false)
-                return
-            }
+            // Mass delete in Supabase
+            const { error } = await supabase
+                .from(tableName)
+                .delete()
+                .neq('id', 'MASS_DELETE_TRICK_ID_THAT_DOES_NOT_EXIST')
 
-            const batch = writeBatch(db)
-            snapshot.forEach(doc => {
-                batch.delete(doc.ref)
-            })
+            if (error) throw error
 
-            await batch.commit()
-            console.log(`Successfully executed batch delete on collection: ${collectionName}`)
             await fetchData()
             setIsModalOpen(false)
         } catch (err) {
@@ -184,20 +215,23 @@ export default function UserManagementPage() {
         if (loading) return <LoadingSpinner text="Loading list..." />
         if (dataList.length === 0) return <div className={styles.emptyState}>No data found in this category</div>
 
+        const idLabel = activeTab === 'candidates' ? 'No. Urut' : 'User ID / NIM'
+        const nameLabel = activeTab === 'candidates' ? 'Nama Paslon' : 'Full Name'
+
         return (
             <div className={styles.tableContainer}>
                 <table className={styles.dataTable}>
                     <thead>
                         <tr>
-                            <th className={styles.colId}>User ID / NIM</th>
-                            <th className={styles.colName}>Full Name</th>
+                            <th className={styles.colId}>{idLabel}</th>
+                            <th className={styles.colName}>{nameLabel}</th>
                             <th className={styles.colAction}>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {dataList.map(item => (
                             <tr key={item.id}>
-                                <td style={{ fontFamily: 'monospace' }}>{item.id}</td>
+                                <td style={{ fontFamily: 'monospace' }}>{activeTab === 'candidates' ? item.number : item.id}</td>
                                 <td>{item.name}</td>
                                 <td>
                                     <div className={styles.actionsCell}>
@@ -222,8 +256,8 @@ export default function UserManagementPage() {
                 {/* Header Section */}
                 <div className={styles.topBar}>
                     <div>
-                        <h1 className={styles.pageTitle}>Manage Access</h1>
-                        <p className={styles.pageSubtitle}>Voters and Administrators database management</p>
+                        <h1 className={styles.pageTitle}>Manage Access & Data</h1>
+                        <p className={styles.pageSubtitle}>System database management for voters, admins, and candidates</p>
                     </div>
                     <div className={styles.topActions}>
                         <Link to="/admin/dashboard" className={styles.btnBack}>
@@ -246,6 +280,12 @@ export default function UserManagementPage() {
                     >
                         Admin Data
                     </button>
+                    <button
+                        className={`${styles.tabBtn} ${activeTab === 'candidates' ? styles.active : ''}`}
+                        onClick={() => setActiveTab('candidates')}
+                    >
+                        Candidates Data
+                    </button>
                 </div>
 
                 {errorMsg && (
@@ -257,21 +297,22 @@ export default function UserManagementPage() {
                 <div className={styles.contentCard}>
                     <div className={styles.sectionHeader}>
                         <h2 className={styles.sectionTitle}>
-                            {activeTab === 'voters' ? 'Registered Voters List' : 'Assistants List'}
+                            {activeTab === 'voters' ? 'Registered Voters List' :
+                                activeTab === 'admins' ? 'Assistants List' : 'Candidates List'}
                         </h2>
                         <div className={styles.sectionHeaderActions}>
-                            {activeTab === 'voters' && (
+                            {activeTab !== 'admins' && (
                                 <button onClick={handleOpenDeleteAllModal} className={styles.btnDeleteAll}>
                                     <i className="fas fa-trash-alt"></i> Delete All
                                 </button>
                             )}
                             <button onClick={handleOpenAddModal} className={styles.btnAdd}>
-                                <i className="fas fa-plus"></i> Add {activeTab === 'voters' ? 'Voter' : 'Admin'}
+                                <i className="fas fa-plus"></i> Add {activeTab === 'voters' ? 'Voter' : activeTab === 'admins' ? 'Admin' : 'Candidate'}
                             </button>
                         </div>
                     </div>
 
-                    {renderTable(activeTab === 'voters' ? users : admins)}
+                    {renderTable(activeTab === 'voters' ? users : activeTab === 'admins' ? admins : candidates)}
                 </div>
             </div>
 
@@ -280,13 +321,16 @@ export default function UserManagementPage() {
                 <div className={styles.modalOverlay}>
                     <div className={styles.modalContent}>
                         <h3>
-                            {modalMode === 'add' ? 'Add Data' : modalMode === 'edit' ? 'Edit Data' : 'Delete Data'} {activeTab === 'voters' ? 'Voter' : 'Admin'}
+                            {modalMode === 'add' ? 'Add Data' : modalMode === 'edit' ? 'Edit Data' :
+                                modalMode === 'delete' ? 'Delete Data' : 'Delete All Data'} {
+                                activeTab === 'voters' ? 'Voter' : activeTab === 'admins' ? 'Admin' : 'Candidate'
+                            }
                         </h3>
 
                         {modalMode === 'delete' ? (
                             <div>
                                 <p style={{ marginBottom: '20px', lineHeight: '1.5' }}>
-                                    Are you sure you want to delete access for <strong>{formData.name}</strong> ({formData.id})? This action cannot be undone.
+                                    Are you sure you want to delete <strong>{formData.name}</strong>? This action cannot be undone.
                                 </p>
                                 <div className={styles.modalActions}>
                                     <button onClick={handleCloseModal} className={styles.btnCancel}>Cancel</button>
@@ -298,7 +342,9 @@ export default function UserManagementPage() {
                         ) : modalMode === 'deleteAll' ? (
                             <div>
                                 <p style={{ marginBottom: '20px', lineHeight: '1.5', color: '#d32f2f', fontWeight: 'bold' }}>
-                                    WARNING: This will permanently delete ALL {activeTab === 'voters' ? 'Voters' : 'Admins'} from the database! This action is IRREVERSIBLE.
+                                    WARNING: This will permanently delete ALL {
+                                        activeTab === 'voters' ? 'Voters' : activeTab === 'candidates' ? 'Candidates' : 'Admins'
+                                    } from the database! This action is IRREVERSIBLE.
                                 </p>
                                 <div className={styles.modalActions}>
                                     <button onClick={handleCloseModal} className={styles.btnCancel}>Cancel</button>
@@ -309,27 +355,54 @@ export default function UserManagementPage() {
                             </div>
                         ) : (
                             <form onSubmit={handleSubmitForm}>
-                                <div className={styles.formGroup}>
-                                    <label>User ID / NIM</label>
-                                    <input
-                                        type="text"
-                                        value={formData.id}
-                                        onChange={e => setFormData({ ...formData, id: e.target.value })}
-                                        placeholder={activeTab === 'voters' ? 'Enter NIM / ID' : 'Admin ID'}
-                                        disabled={modalMode === 'edit'} // ID cannot be updated directly
-                                        required
-                                    />
-                                </div>
-                                <div className={styles.formGroup}>
-                                    <label>Full Name</label>
-                                    <input
-                                        type="text"
-                                        value={formData.name}
-                                        onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                        placeholder="Full Name"
-                                        required
-                                    />
-                                </div>
+                                {activeTab === 'candidates' ? (
+                                    <>
+                                        <div className={styles.formGroup}>
+                                            <label>Candidate Number (No. Urut)</label>
+                                            <input
+                                                type="text"
+                                                value={formData.candidate_number || ''}
+                                                onChange={e => setFormData({ ...formData, candidate_number: e.target.value })}
+                                                placeholder="e.g. 01, 02"
+                                                required
+                                            />
+                                        </div>
+                                        <div className={styles.formGroup}>
+                                            <label>Candidate Name</label>
+                                            <input
+                                                type="text"
+                                                value={formData.name}
+                                                onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                                placeholder="Full Candidate Name"
+                                                required
+                                            />
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className={styles.formGroup}>
+                                            <label>User ID / NIM</label>
+                                            <input
+                                                type="text"
+                                                value={formData.id}
+                                                onChange={e => setFormData({ ...formData, id: e.target.value })}
+                                                placeholder={activeTab === 'voters' ? 'Enter NIM / ID' : 'Admin ID'}
+                                                disabled={modalMode === 'edit'}
+                                                required
+                                            />
+                                        </div>
+                                        <div className={styles.formGroup}>
+                                            <label>Full Name</label>
+                                            <input
+                                                type="text"
+                                                value={formData.name}
+                                                onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                                placeholder="Full Name"
+                                                required
+                                            />
+                                        </div>
+                                    </>
+                                )}
 
                                 <div className={styles.modalActions}>
                                     <button type="button" onClick={handleCloseModal} className={styles.btnCancel}>Cancel</button>

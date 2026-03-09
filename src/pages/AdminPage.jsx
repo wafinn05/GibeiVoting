@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { collection, getDocs, doc, getDoc, writeBatch } from 'firebase/firestore'
-import { db } from '../services/firebase'
+import { supabase } from '../services/supabase'
 import { useAuth } from '../context/AuthContext'
 import { exportToExcel } from '../utils/exportExcel'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -31,28 +30,58 @@ export default function AdminPage() {
             return
         }
         loadDashboardData()
+
+        // ====== REALTIME SUBSCRIPTION ======
+        const votesSubscription = supabase
+            .channel('any')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'votes' }, () => {
+                loadDashboardData() // Reload on any change
+            })
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(votesSubscription)
+        }
     }, [isAdminLoggedIn])
 
     // ====== LOAD DASHBOARD DATA ======
     async function loadDashboardData() {
-        setDashboardLoading(true)
+        // Only show full loading on first load
+        if (votesData.length === 0) setDashboardLoading(true)
+
         try {
-            const votesSnap = await getDocs(collection(db, 'votes'))
-            const votes = []
-            votesSnap.forEach(docSnap => {
-                votes.push({ id: docSnap.id, ...docSnap.data() })
+            // 1. Fetch Candidates (Paslon)
+            const { data: paslonArr, error: paslonError } = await supabase
+                .from('candidates')
+                .select('*')
+                .order('candidate_number', { ascending: true })
+
+            if (paslonError) throw paslonError
+
+            const paslonMap = {}
+            paslonArr.forEach(p => {
+                paslonMap[p.id] = {
+                    name: p.candidate_name,
+                    number: p.candidate_number,
+                    shortName: `Paslon ${p.candidate_number}`
+                }
             })
 
-            const paslonDoc = await getDoc(doc(db, 'VotingGIBEI', 'Paslon'))
-            const paslon = paslonDoc.exists() ? paslonDoc.data() : {}
+            // 2. Fetch Votes
+            const { data: votes, error: votesError } = await supabase
+                .from('votes')
+                .select('*')
+                .order('created_at', { ascending: false })
+
+            if (votesError) throw votesError
 
             // Process statistics
             const candidateStats = {}
-            Object.keys(paslon).forEach(key => {
-                candidateStats[key] = {
-                    name: paslon[key].name || paslon[key],
-                    number: paslon[key].number || key,
-                    shortName: paslon[key].shortName || `Paslon ${key}`,
+            paslonArr.forEach(p => {
+                candidateStats[p.id] = {
+                    name: p.candidate_name,
+                    number: p.candidate_number,
+                    shortName: `Paslon ${p.candidate_number}`,
                     totalScore: 0,
                     voteCount: 0,
                     average: 0
@@ -64,14 +93,9 @@ export default function AdminPage() {
                     Object.keys(vote.ratings).forEach(paslonKey => {
                         const item = vote.ratings[paslonKey]
                         if (item && typeof item.rating === 'number') {
-                            const candidateKey = paslonKey === 'paslon1' ? 'A' :
-                                paslonKey === 'paslon2' ? 'B' :
-                                    paslonKey === 'paslon3' ? 'C' :
-                                        paslonKey === 'paslon4' ? 'D' : paslonKey
-
-                            if (candidateStats[candidateKey]) {
-                                candidateStats[candidateKey].totalScore += item.rating
-                                candidateStats[candidateKey].voteCount += 1
+                            if (candidateStats[paslonKey]) {
+                                candidateStats[paslonKey].totalScore += item.rating
+                                candidateStats[paslonKey].voteCount += 1
                             }
                         }
                     })
@@ -92,10 +116,11 @@ export default function AdminPage() {
             setTopCandidate(sorted.length > 0 ? sorted[0].name : '-')
             setSortedCandidates(sorted)
             setVotesData(votes)
-            setPaslonData(paslon)
+            setPaslonData(paslonMap)
         } catch (error) {
             console.error('Error loading dashboard:', error)
-            alert('Failed to load dashboard data: ' + error.message)
+            // Silently fail if we already have data
+            if (votesData.length === 0) alert('Failed to load dashboard data: ' + error.message)
         }
         setDashboardLoading(false)
     }
@@ -128,25 +153,21 @@ export default function AdminPage() {
     async function executeDeleteAllVotes() {
         setDeletingAll(true)
         try {
-            const batch = writeBatch(db)
+            // 1. Delete all votes
+            const { error: deleteVotesError } = await supabase
+                .from('votes')
+                .delete()
+                .neq('id', '00000000-0000-0000-0000-000000000000') // Mass delete hack for Supabase
 
-            // 1. Get all votes and delete them
-            const votesSnap = await getDocs(collection(db, 'votes'))
-            votesSnap.forEach((docSnap) => {
-                batch.delete(docSnap.ref)
-            })
+            if (deleteVotesError) throw deleteVotesError
 
-            // 2. Get all users and reset their hasVoted status
-            const usersSnap = await getDocs(collection(db, 'users'))
-            usersSnap.forEach((userDoc) => {
-                batch.update(userDoc.ref, {
-                    hasVoted: false,
-                    votedAt: null
-                })
-            })
+            // 2. Reset all voters 'has_voted' status
+            const { error: resetVotersError } = await supabase
+                .from('voters')
+                .update({ has_voted: false, voted_at: null })
+                .eq('has_voted', true)
 
-            // Commit the batch
-            await batch.commit()
+            if (resetVotersError) throw resetVotersError
 
             setDeleteSuccessMsg('All voting data has been successfully deleted and voter statuses have been reset.')
             loadDashboardData() // Refresh dashboard completely
@@ -226,13 +247,8 @@ export default function AdminPage() {
                             Object.keys(vote.ratings).forEach(paslonKey => {
                                 const item = vote.ratings[paslonKey]
                                 if (item && typeof item.rating === 'number') {
-                                    const candidateKey = paslonKey === 'paslon1' ? 'A' :
-                                        paslonKey === 'paslon2' ? 'B' :
-                                            paslonKey === 'paslon3' ? 'C' :
-                                                paslonKey === 'paslon4' ? 'D' : paslonKey
-
-                                    const name = paslonData[candidateKey]
-                                        ? (paslonData[candidateKey].name || paslonData[candidateKey])
+                                    const name = paslonData[paslonKey]
+                                        ? (paslonData[paslonKey].name || paslonData[paslonKey])
                                         : (item.candidateName || paslonKey)
 
                                     voteValues.push({ name, rating: item.rating })
@@ -243,8 +259,8 @@ export default function AdminPage() {
 
                         return (
                             <tr key={vote.id}>
-                                <td className={styles.userId}>{vote.id}</td>
-                                <td>{vote.memberName || 'No name'}</td>
+                                <td className={styles.userId}>{vote.voter_id}</td>
+                                <td>{vote.voter_name || 'No name'}</td>
                                 <td>
                                     <div className={styles.voteValues}>
                                         {hasValid ? voteValues.map((v, i) => (
@@ -259,7 +275,7 @@ export default function AdminPage() {
                                     </div>
                                 </td>
                                 <td className={styles.timestamp}>
-                                    {vote.timestamp ? new Date(vote.timestamp).toLocaleString('en-US') : 'No data'}
+                                    {vote.created_at ? new Date(vote.created_at).toLocaleString('en-US') : 'No data'}
                                 </td>
                             </tr>
                         )

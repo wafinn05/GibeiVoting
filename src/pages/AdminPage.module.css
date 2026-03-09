@@ -194,22 +194,25 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 25px 0;
-    border-bottom: 2px solid rgba(0, 0, 0, 0.04);
-    margin-bottom: 30px;
+    padding: 20px 30px;
+    background: var(--merah-header);
+    border-radius: 12px;
+    margin: 10px 0 30px 0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .pageTitle {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     font-weight: 700;
-    color: var(--hitam);
+    color: var(--putih);
     margin: 0 0 5px 0;
 }
 
 .pageSubtitle {
-    color: var(--abu);
-    font-size: 0.95rem;
+    color: var(--emas-muda);
+    font-size: 0.9rem;
     margin: 0;
+    opacity: 0.9;
 }
 
 .topActions {
@@ -219,17 +222,17 @@
 }
 
 .totalVotersBadge {
-    background: #ffffff;
+    background: var(--putih);
     color: var(--hitam);
     padding: 10px 16px;
     border-radius: 8px;
     font-weight: 600;
-    border: 1px solid rgba(0, 0, 0, 0.03);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    border: none;
     display: flex;
     align-items: center;
     gap: 8px;
     font-size: 0.95rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .btnExportMini,
@@ -248,13 +251,14 @@
 }
 
 .btnExportMini {
-    background: var(--hitam);
-    color: var(--putih);
+    background: var(--putih);
+    color: var(--hitam);
     border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .btnExportMini:hover {
-    background: #222;
+    background: #f0f0f0;
     transform: translateY(-1px);
 }
 
@@ -266,22 +270,23 @@
 }
 
 .btnRealtimeMini {
-    background: #ffffff;
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: var(--putih);
+    border: none;
     color: var(--hitam);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .btnRealtimeMini:hover {
-    background: #f8f9fa;
-    border-color: var(--hitam);
+    background: #f0f0f0;
+    transform: translateY(-1px);
 }
 
 .btnLogoutMini {
-    background: #ffffff;
-    border: 1px solid #ffcdd2;
+    background: var(--putih);
+    border: none;
     color: var(--merah);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .btnLogoutMini:hover {
@@ -634,21 +639,18 @@
 
     .topBar {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: center;
         gap: 15px;
-        padding: 20px 0;
+        padding: 25px 20px;
+        text-align: center;
     }
 
     .topActions {
         width: 100%;
         display: flex;
         flex-wrap: wrap;
+        justify-content: center;
         gap: 10px;
-    }
-
-    .btnText {
-        display: inline;
-        /* Keep text visible on tablet */
     }
 }
 
@@ -671,10 +673,11 @@
     }
 
     .topBar {
-        padding: 15px 0;
+        padding: 20px 15px;
         margin-bottom: 20px;
-        text-align: center;
-        align-items: center;
+        border-radius: 0;
+        margin-left: -10px;
+        margin-right: -10px;
     }
 
     .pageTitle {

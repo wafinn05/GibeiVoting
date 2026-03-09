@@ -20,22 +20,25 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 25px 0;
-    border-bottom: 2px solid rgba(0, 0, 0, 0.04);
-    margin-bottom: 20px;
+    padding: 20px 30px;
+    background: var(--merah-header);
+    border-radius: 12px;
+    margin: 10px 0 25px 0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .pageTitle {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     font-weight: 700;
-    color: var(--hitam);
+    color: var(--putih);
     margin: 0 0 5px 0;
 }
 
 .pageSubtitle {
-    color: var(--abu);
-    font-size: 0.95rem;
+    color: var(--emas-muda);
+    font-size: 0.9rem;
     margin: 0;
+    opacity: 0.9;
 }
 
 .topActions {
@@ -55,10 +58,10 @@
     gap: 8px;
     transition: all 0.2s ease;
     text-decoration: none;
-    background: #ffffff;
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: var(--putih);
+    border: none;
     color: var(--hitam);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .btnBack:hover {
@@ -392,11 +395,90 @@
 }
 
 @media (max-width: 768px) {
+    .adminBody {
+        padding: 10px;
+    }
+
+    .container {
+        padding: 0 10px;
+    }
+
+    .topBar {
+        flex-direction: column;
+        gap: 15px;
+        padding: 20px 15px;
+        text-align: center;
+        border-radius: 0;
+        margin-left: -10px;
+        margin-right: -10px;
+    }
+
+    .pageTitle {
+        font-size: 1.3rem;
+    }
+
+    .topActions {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .tabs {
+        overflow-x: auto;
+        padding-bottom: 5px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .tabBtn {
+        padding: 8px 15px;
+        font-size: 0.9rem;
+        white-space: nowrap;
+    }
+
     .contentCard {
         padding: 15px;
+        border-radius: 8px;
+    }
+
+    .sectionHeader {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+        min-height: auto;
+        margin-bottom: 20px;
+    }
+
+    .sectionHeaderActions {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .btnAdd,
+    .btnDeleteAll {
+        flex: 1;
+        justify-content: center;
+        font-size: 0.85rem;
+        padding: 10px;
     }
 
     .dataTable {
+        min-width: 500px;
         font-size: 0.8rem;
+    }
+
+    .dataTable th,
+    .dataTable td {
+        padding: 10px 8px;
+    }
+
+    .colId {
+        width: 30%;
+    }
+
+    .colName {
+        width: 50%;
+    }
+
+    .colAction {
+        width: 20%;
     }
 }
