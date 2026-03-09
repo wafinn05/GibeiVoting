@@ -1,8 +1,9 @@
-import * as XLSX from 'xlsx'
 import { supabase } from '../services/supabase'
 
 export async function exportToExcel() {
     try {
+        // Dynamic import XLSX to save initial bundle size
+        const XLSX = await import('xlsx')
         // 1. Fetch Candidates (Paslon)
         const { data: paslonArr, error: paslonError } = await supabase
             .from('candidates')

@@ -53,7 +53,7 @@ export default function AdminPage() {
             // 1. Fetch Candidates (Paslon)
             const { data: paslonArr, error: paslonError } = await supabase
                 .from('candidates')
-                .select('*')
+                .select('id, candidate_name, candidate_number')
                 .order('candidate_number', { ascending: true })
 
             if (paslonError) throw paslonError
@@ -70,7 +70,7 @@ export default function AdminPage() {
             // 2. Fetch Votes
             const { data: votes, error: votesError } = await supabase
                 .from('votes')
-                .select('*')
+                .select('id, voter_id, voter_name, ratings, created_at')
                 .order('created_at', { ascending: false })
 
             if (votesError) throw votesError
