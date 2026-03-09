@@ -1,0 +1,192 @@
+.landingBody {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    height: 100vh;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    background-color: #f8f9fa;
+}
+
+.container {
+    display: flex;
+    max-width: 1150px;
+    width: 95%;
+    max-height: 98vh;
+    background: var(--putih);
+    border-radius: 16px;
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+
+.leftPanel {
+    flex: 1;
+    background: linear-gradient(135deg, var(--merah) 0%, var(--hitam) 100%);
+    color: var(--putih);
+    padding: 40px 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.rightPanel {
+    flex: 1;
+    padding: 40px 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.logo {
+    width: 110px;
+    margin-bottom: 20px;
+    filter: brightness(0) invert(1);
+}
+
+.title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    line-height: 1.2;
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    margin-bottom: 25px;
+}
+
+.infoBox {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 25px;
+}
+
+.infoBox h3 {
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+}
+
+.infoBox p {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    line-height: 1.5;
+}
+
+.votingTitle {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--merah);
+}
+
+.votingSubtitle {
+    font-size: 1rem;
+    color: var(--abu);
+    margin-bottom: 25px;
+}
+
+.buttonContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.actionBtn {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    border: 1px solid #dadce0;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    background: var(--putih);
+    color: var(--abu-tua);
+    cursor: pointer;
+}
+
+.actionBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.btnPrimary {
+    background: var(--merah);
+    color: var(--putih);
+    border-color: var(--merah);
+}
+
+.btnPrimary:hover {
+    background: var(--merah-muda);
+    box-shadow: 0 5px 15px rgba(183, 28, 28, 0.3);
+}
+
+.btnSecondary {
+    background: var(--putih);
+    color: var(--hitam);
+    border-color: #dadce0;
+}
+
+.btnSecondary:hover {
+    background: var(--abu-muda);
+    border-color: var(--hitam);
+}
+
+.btnIcon {
+    margin-right: 15px;
+    font-size: 1.2rem;
+}
+
+.instructions {
+    margin-top: 25px;
+}
+
+.instructions h3 {
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    color: var(--abu-tua);
+}
+
+.instructionList {
+    list-style-type: none;
+    padding: 0;
+}
+
+.instructionList li {
+    padding: 7px 0;
+    display: flex;
+    align-items: flex-start;
+    font-size: 0.95rem;
+}
+
+.instructionList li i {
+    color: var(--emas);
+    margin-right: 12px;
+    margin-top: 3px;
+    font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+    .landingBody {
+        height: auto;
+        min-height: 100vh;
+        overflow-y: auto;
+        padding: 20px 10px;
+    }
+
+    .container {
+        flex-direction: column;
+        max-height: none;
+        width: 100%;
+    }
+
+    .leftPanel,
+    .rightPanel {
+        padding: 40px 30px;
+    }
+}

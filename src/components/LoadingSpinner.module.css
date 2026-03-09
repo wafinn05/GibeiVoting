@@ -1,0 +1,34 @@
+.loading {
+    text-align: center;
+    padding: 30px;
+}
+
+.spinner {
+    border: 4px solid rgba(183, 28, 28, 0.3);
+    border-radius: 50%;
+    border-top: 4px solid var(--merah);
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 12px;
+}
+
+.spinnerLarge {
+    width: 50px;
+    height: 50px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.loading p {
+    color: var(--abu);
+    font-size: 0.95rem;
+}

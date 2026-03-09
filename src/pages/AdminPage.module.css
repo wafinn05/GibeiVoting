@@ -1,0 +1,807 @@
+/* ===== Admin Page Styles ===== */
+.adminBody {
+    padding: 15px;
+    height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    background-color: #f4f6f8;
+    /* Soft modern gray background */
+}
+
+.container {
+    width: 100%;
+    max-width: 1400px;
+    padding: 0 20px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.mainContent {
+    flex: 1;
+    min-height: 0;
+    /* Allows flex child to shrink below its min content size */
+    padding-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Centered Login Section */
+.loginSection {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 25px;
+}
+
+.loginContainer {
+    width: 100%;
+    max-width: 450px;
+}
+
+.loginCard {
+    background: var(--putih);
+    border-radius: 20px;
+    padding: 50px 40px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(183, 28, 28, 0.1);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.loginCard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, var(--merah), var(--emas));
+}
+
+.loginIcon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 25px;
+    background: linear-gradient(135deg, var(--merah) 0%, var(--hitam) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid var(--emas);
+    box-shadow: 0 8px 20px rgba(183, 28, 28, 0.2);
+}
+
+.loginIcon i {
+    font-size: 2rem;
+    color: var(--putih);
+}
+
+.loginTitle {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--hitam);
+    background: linear-gradient(135deg, var(--merah), var(--hitam));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.loginSubtitle {
+    font-size: 1rem;
+    color: var(--abu);
+    margin-bottom: 35px;
+    line-height: 1.5;
+}
+
+.loginForm {
+    text-align: left;
+}
+
+.formGroup {
+    margin-bottom: 25px;
+}
+
+.formGroup label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: var(--hitam);
+    font-size: 0.95rem;
+}
+
+.inputWithIcon {
+    position: relative;
+}
+
+.inputWithIcon i {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--abu);
+}
+
+.inputWithIcon input {
+    width: 100%;
+    padding: 16px 18px 16px 50px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: var(--putih);
+}
+
+.inputWithIcon input:focus {
+    outline: none;
+    border-color: var(--merah);
+    box-shadow: 0 0 0 4px rgba(183, 28, 28, 0.1);
+}
+
+.inputError {
+    border-color: #d32f2f !important;
+}
+
+.btnLogin {
+    background: var(--merah);
+    color: var(--putih);
+    border: none;
+    padding: 16px 30px;
+    font-size: 1.1rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+    width: 100%;
+    justify-content: center;
+    margin-top: 15px;
+    box-shadow: 0 4px 15px rgba(183, 28, 28, 0.3);
+}
+
+.btnLogin:hover {
+    background: var(--merah-muda);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(183, 28, 28, 0.4);
+}
+
+.errorMessage {
+    color: #d32f2f;
+    font-size: 0.85rem;
+    margin-top: 8px;
+    font-weight: 500;
+    text-align: left;
+}
+
+/* Dashboard Layout */
+.dashboardLayout {
+    display: grid;
+    grid-template-columns: 1fr 1.8fr;
+    gap: 40px;
+    margin-top: 10px;
+    flex: 1;
+    min-height: 0;
+}
+
+/* Minimal Top Bar */
+.topBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 0;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.04);
+    margin-bottom: 30px;
+}
+
+.pageTitle {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--hitam);
+    margin: 0 0 5px 0;
+}
+
+.pageSubtitle {
+    color: var(--abu);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.topActions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.totalVotersBadge {
+    background: #ffffff;
+    color: var(--hitam);
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    border: 1px solid rgba(0, 0, 0, 0.03);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+}
+
+.btnExportMini,
+.btnRealtimeMini,
+.btnLogoutMini {
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btnExportMini {
+    background: var(--hitam);
+    color: var(--putih);
+    border: none;
+}
+
+.btnExportMini:hover {
+    background: #222;
+    transform: translateY(-1px);
+}
+
+.btnExportMini:disabled {
+    background: #e0e0e0;
+    color: #9e9e9e;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btnRealtimeMini {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    color: var(--hitam);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.btnRealtimeMini:hover {
+    background: #f8f9fa;
+    border-color: var(--hitam);
+}
+
+.btnLogoutMini {
+    background: #ffffff;
+    border: 1px solid #ffcdd2;
+    color: var(--merah);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.btnLogoutMini:hover {
+    background: #ffebee;
+}
+
+/* Columns */
+.rankingColumn {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.detailColumn {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.sectionTitle {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 18px;
+    color: var(--hitam);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sectionHeaderFlex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.sectionHeaderFlex .sectionTitle {
+    margin-bottom: 0;
+}
+
+.btnDeleteAll {
+    background: #ffffff;
+    border: 1px solid #ffcdd2;
+    color: var(--merah);
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.btnDeleteAll:hover {
+    background: #ffebee;
+}
+
+.btnDeleteAll:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+
+.rankingSection {
+    margin-bottom: 25px;
+}
+
+.rankingList {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-right: 8px;
+    /* For scrollbar */
+}
+
+.rankingItem {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.03);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.rankingItem:hover {
+    background: #ffffff;
+    border-color: rgba(183, 28, 28, 0.1);
+    transform: translateX(4px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.04);
+}
+
+.rankNumber {
+    width: 35px;
+    height: 35px;
+    background: var(--merah);
+    color: var(--putih);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 15px;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.rank1 .rankNumber {
+    background: var(--emas);
+    color: var(--hitam);
+}
+
+.rank2 .rankNumber {
+    background: #c0c0c0;
+}
+
+.rank3 .rankNumber {
+    background: #cd7f32;
+}
+
+.candidateInfo {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.candidateName {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--hitam);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.candidateStats {
+    display: flex;
+    gap: 15px;
+    color: var(--abu);
+    font-size: 0.85rem;
+    align-items: center;
+}
+
+.candidateStats span {
+    white-space: nowrap;
+}
+
+.ratingScore {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--merah);
+}
+
+/* Votes Table */
+.votesSection {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.votesTableContainer {
+    flex: 1;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.03);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    overflow: auto;
+}
+
+.votesTable {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+}
+
+.votesTable th {
+    background: #8B0000;
+    /* Dark Red */
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--putih);
+    font-size: 0.85rem;
+    border-bottom: none;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.votesTable td {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.02);
+    vertical-align: top;
+    font-size: 0.9rem;
+}
+
+.votesTable tr:last-child td {
+    border-bottom: none;
+}
+
+.votesTable tr:hover {
+    background: rgba(183, 28, 28, 0.05);
+}
+
+.userId {
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: var(--abu);
+    word-break: break-all;
+    max-width: 120px;
+}
+
+.voteValues {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    max-width: 200px;
+}
+
+.voteValue {
+    background: #f8f9fa;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    border: 1px solid #eaeaea;
+    color: var(--hitam);
+    white-space: nowrap;
+}
+
+.voteValueError {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.timestamp {
+    color: var(--abu);
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.noData {
+    text-align: center;
+    padding: 30px;
+    color: var(--abu);
+}
+
+.noData i {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+    color: var(--merah);
+    display: block;
+}
+
+/* Modal form inline */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.modalContent {
+    background: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+.modalContent h3 {
+    margin: 0 0 20px 0;
+    font-size: 1.4rem;
+    color: var(--hitam);
+    font-weight: 700;
+}
+
+.modalActions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.btnCancel {
+    background: #f5f5f5;
+    color: var(--hitam);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btnCancel:hover {
+    background: #e0e0e0;
+}
+
+.btnDeleteConfirm {
+    background: #d32f2f;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btnDeleteConfirm:hover {
+    background: #b71c1c;
+}
+
+.btnDeleteConfirm:disabled {
+    background: #ef9a9a;
+    cursor: not-allowed;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1200px) {
+    .dashboardLayout {
+        grid-template-columns: 1fr 1.4fr;
+        gap: 20px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .dashboardLayout {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+
+    .topBar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+        padding: 20px 0;
+    }
+
+    .topActions {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .btnText {
+        display: inline;
+        /* Keep text visible on tablet */
+    }
+}
+
+@media (max-width: 768px) {
+    .adminBody {
+        padding: 10px;
+        height: auto;
+        /* Allow scroll on mobile body if needed */
+        min-height: 100vh;
+        overflow-y: auto;
+    }
+
+    .container {
+        padding: 0 10px;
+        height: auto;
+    }
+
+    .mainContent {
+        padding-bottom: 30px;
+    }
+
+    .topBar {
+        padding: 15px 0;
+        margin-bottom: 20px;
+        text-align: center;
+        align-items: center;
+    }
+
+    .pageTitle {
+        font-size: 1.4rem;
+    }
+
+    .pageSubtitle {
+        font-size: 0.85rem;
+    }
+
+    .topActions {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .totalVotersBadge,
+    .btnExportMini,
+    .btnRealtimeMini,
+    .btnLogoutMini {
+        width: 100%;
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        justify-content: center;
+    }
+
+    .sectionTitle {
+        font-size: 1.1rem;
+        margin-bottom: 12px;
+    }
+
+    .rankingItem {
+        padding: 12px;
+    }
+
+    .candidateName {
+        font-size: 1rem;
+    }
+
+    .candidateStats {
+        font-size: 0.8rem;
+        gap: 8px;
+    }
+
+    .votesTableContainer {
+        border-radius: 8px;
+        max-height: 400px;
+    }
+
+    .votesTable th,
+    .votesTable td {
+        padding: 10px 12px;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .topActions {
+        grid-template-columns: 1fr;
+    }
+
+    .rankingItem {
+        padding: 12px;
+    }
+
+    .candidateStats {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .candidateStats span {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .votesTable {
+        min-width: 450px;
+        /* Slightly narrower but still scrollable */
+    }
+
+    .voteValue {
+        font-size: 0.7rem;
+        padding: 3px 6px;
+    }
+
+    .loginCard {
+        padding: 30px 20px;
+    }
+
+    .loginTitle {
+        font-size: 1.4rem;
+    }
+
+    .modalContent {
+        padding: 20px;
+        max-width: 90%;
+    }
+
+    .modalActions {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .btnCancel,
+    .btnDeleteConfirm {
+        width: 100%;
+    }
+}
+
+/* Custom Scrollbar for Webkit */
+.votesTableContainer::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.votesTableContainer::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.votesTableContainer::-webkit-scrollbar-thumb {
+    background: #e0e0e0;
+    border-radius: 10px;
+}
+
+.votesTableContainer::-webkit-scrollbar-thumb:hover {
+    background: #bdbdbd;
+}
