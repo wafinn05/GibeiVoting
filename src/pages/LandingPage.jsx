@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import styles from './LandingPage.module.css'
 
-const LOGO_URL = 'https://gibeitelkomuniversity.my.id/src/assets/logo.png'
+const LOGO_URL = '/logo.png'
 
 export default function LandingPage() {
     return (

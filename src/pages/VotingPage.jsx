@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 import styles from './VotingPage.module.css'
 
-const LOGO_URL = 'https://gibeitelkomuniversity.my.id/src/assets/logo.png'
+const LOGO_URL = '/logo.png'
 
 export default function VotingPage() {
     const navigate = useNavigate()
